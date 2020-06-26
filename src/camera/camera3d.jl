@@ -10,6 +10,9 @@ struct Camera3D <: AbstractCamera
     fov::Node{Float32}
     near::Node{Float32}
     far::Node{Float32}
+    bbox_scale::Node{Float32}
+    nearbb::Node{Float32}
+    farbb::Node{Float32}
     projectiontype::Node{ProjectionEnum}
     pan_button::Node{ButtonTypes}
     rotate_button::Node{ButtonTypes}
@@ -34,6 +37,9 @@ function cam3d_cad!(scene; kw_args...)
             fov = 45f0,
             near = 0.01f0,
             far = 100f0,
+            bbox_scale = 1f0,
+            nearbb = 0.01f0,
+            farbb = 100f0,
             projectiontype = Perspective,
             pan_button = Mouse.right,
             rotate_button = Mouse.left,
@@ -41,6 +47,8 @@ function cam3d_cad!(scene; kw_args...)
         )
     end
     cam = from_dict(Camera3D, cam_attributes)
+    map!((bb, near) -> near * bb, cam.nearbb, cam.bbox_scale, cam.near)
+    map!((bb, far) -> far * bb, cam.farbb, cam.bbox_scale, cam.far)
     # remove previously connected camera
     disconnect!(scene.camera)
     add_translation!(scene, cam, cam.pan_button, cam.move_key, false)
@@ -70,6 +78,9 @@ function cam3d_turntable!(scene; kw_args...)
             fov = 45f0,
             near = 0.01f0,
             far = 100f0,
+            bbox_scale = 1f0,
+            nearbb = 0.01f0,
+            farbb = 100f0,
             projectiontype = Perspective,
             pan_button = Mouse.right,
             rotate_button = Mouse.left,
@@ -77,6 +88,8 @@ function cam3d_turntable!(scene; kw_args...)
         )
     end
     cam = from_dict(Camera3D, cam_attributes)
+    map!((bb, near) -> near * bb, cam.nearbb, cam.bbox_scale, cam.near)
+    map!((bb, far) -> far * bb, cam.farbb, cam.bbox_scale, cam.far)
     # remove previously connected camera
     disconnect!(scene.camera)
     add_translation!(scene, cam, cam.pan_button, cam.move_key, true)
@@ -275,13 +288,10 @@ function rotate_cam!(scene::Scene, cam::Camera3D, _theta_v::VecTypes, fixed_axis
 end
 
 function update_cam!(scene::Scene, cam::Camera3D)
-    @extractvalue cam (fov, near, projectiontype, lookat, eyeposition, upvector)
+    @extractvalue cam (fov, nearbb, farbb, projectiontype, lookat, eyeposition, upvector)
 
     zoom = norm(lookat - eyeposition)
-    # TODO this means you can't set FarClip... SAD!
-    # TODO use boundingbox(scene) for optimal far/near
-    far = max(zoom * 5f0, 30f0)
-    proj = projection_switch(scene.px_area[], fov, near, far, projectiontype, zoom)
+    proj = projection_switch(scene.px_area[], fov, nearbb, farbb, projectiontype, zoom)
     view = AbstractPlotting.lookat(eyeposition, lookat, upvector)
 
     scene.camera.projection[] = proj
@@ -291,7 +301,7 @@ function update_cam!(scene::Scene, cam::Camera3D)
 end
 
 function update_cam!(scene::Scene, camera::Camera3D, area3d::Rect)
-    @extractvalue camera (fov, near, lookat, eyeposition, upvector)
+    @extractvalue camera (lookat, eyeposition, upvector)
     bb = FRect3D(area3d)
     width = widths(bb)
     half_width = width/2f0
@@ -302,8 +312,8 @@ function update_cam!(scene::Scene, camera::Camera3D, area3d::Rect)
     neweyepos = middle .+ (1.2*norm(width) .* old_dir)
     camera.eyeposition[] = neweyepos
     camera.upvector[] = Vec3f0(0,0,1)
-    camera.near[] = 0.1f0 * norm(widths(bb))
-    camera.far[] = 3f0 * norm(widths(bb))
+    # updates nearbb/farbb
+    camera.bbox_scale[] = norm(widths(bb))
     update_cam!(scene, camera)
     return
 end
