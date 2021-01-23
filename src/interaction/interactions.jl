@@ -17,6 +17,17 @@ const DEFAULT_BACKEND_PRIORITY = Int8(40)
 const DEFAULT_PRIORITY = Int8(0)
 
 
+function show(io::IO, int::Interactions)
+    print(io, "Interactions")
+    print(io, " [active priorities (recursive): ", join(int.active, ", "), "]")
+    for (key, (priority, idx)) in int.keymap
+        T = int.interactions[idx] isa Function ? Function : typeof(int.interactions[idx])
+        print(io, "\n")
+        print(io, rpad("    :$key", 25), " => [Priority ", lpad("$priority", 3), "] $T")
+    end
+end
+
+
 """
     register!(scene_or_plot, key::Symbol, interaction::Any[, priority=0])
     register!(scene_or_plot, key[, priority]) do event, scene ... end
