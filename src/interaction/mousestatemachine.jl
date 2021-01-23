@@ -112,7 +112,7 @@ function MouseStateMachine(
     msm = MouseStateMachine(
         mouseposition(scene), mouseposition_px(scene), plots; kwargs...
     )
-    replace!(scene, :mousestatemachine, msm, )
+    replace!(scene, :mousestatemachine, msm, priority)
 end
 
 function spawn!(
