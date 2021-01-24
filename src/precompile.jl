@@ -62,7 +62,8 @@ function _precompile_()
     Base.precompile(Tuple{Type{Text{ArgType} where ArgType},Annotations{Tuple{Vector{Tuple{String, Point{2, Float32}}}}},Attributes,Tuple{Observable{String}},Observable{Tuple{String}}})   # time: 0.028124427
     Base.precompile(Tuple{Core.kwftype(typeof(Type)),NamedTuple{(:ranges_labels, :formatter, :gap, :title_gap, :linewidth, :linecolor, :linestyle, :textcolor, :textsize, :rotation, :align, :font), Tuple{Tuple{Automatic, Automatic}, typeof(AbstractPlotting.Formatters.plain), Int64, Int64, Tuple{Int64, Int64}, Tuple{Tuple{Symbol, Float64}, Tuple{Symbol, Float64}}, Tuple{Nothing, Nothing}, Tuple{Symbol, Symbol}, Tuple{Int64, Int64}, Tuple{Float64, Float64}, Tuple{Tuple{Symbol, Symbol}, Tuple{Symbol, Symbol}}, Observable{Tuple{String, String}}}},Type{Attributes}})   # time: 0.028094089
     Base.precompile(Tuple{Core.kwftype(typeof(text!)),NamedTuple{(:align, :model, :position, :color, :visible, :textsize, :font, :rotation), Tuple{Vec{2, Float32}, SMatrix{4, 4, Float32, 16}, Vector{Point{3, Float32}}, Vector{RGBA{Float32}}, Observable{Any}, Vector{Float32}, Vector{FTFont}, Vector{Quaternionf0}}},typeof(text!),Annotations{Tuple{Vector{Tuple{String, Point{2, Float32}}}}},Vararg{Any, 100}})   # time: 0.027778953
-    Base.precompile(Tuple{typeof(selection_rect!),Scene,Camera2D,Observable{Any}})   # time: 0.02611231
+    # TODO reenable or maybe add process! calls?
+    # Base.precompile(Tuple{typeof(selection_rect!),Scene,Camera2D,Observable{Any}})   # time: 0.02611231
     Base.precompile(Tuple{typeof(map_once),Function,Observable{Annotations{Tuple{Vector{Tuple{String, Point{2, Float32}}}}}},Observable{LineSegments{Tuple{Vector{Point{2, Float32}}}}},Vararg{Observable, 100}})   # time: 0.024804583
     let fbody = try Base.bodyfunction(which(map_once, (Function,Observable{Vec{3, Float32}},Observable{Vec{3, Float32}},Vararg{Observable, 100},))) catch missing end
         if !ismissing(fbody)
