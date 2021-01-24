@@ -69,25 +69,27 @@ mutable struct MouseStateMachine
     doubleclick_timeout::Float64
     plots::Vector{AbstractPlot} # restrict to events on those - if empty ignore
     consume_source_events::Bool
+    restrict_distribution::Bool # only distribute to scene and plots if true
 end
 
 function MouseStateMachine(
         prev_data = Point2f0(0), prev_px = Point2f0(0), plots = AbstractPlot[]; 
-        doubleclick_timeout = 0.2, consume_source_events = true
+        doubleclick_timeout = 0.2, consume_source_events = true, restrict_distribution = true
     )
     MouseStateMachine(
         time(), Point2f0(0), Point2f0(0),
         false, Mouse.none, Mouse.none, false,
-        doubleclick_timeout, AbstractPlot[p for p in plots], consume_source_events
+        doubleclick_timeout, AbstractPlot[p for p in plots], 
+        consume_source_events, restrict_distribution
     )
 end
 
 """
     MouseStateMachine(scene[, elements...; kwargs...])
 
-Creates and attaches a `MouseStateMachine` that produces `MouseStateEvents` in 
-the given `scene`. These events will propagate to any attached plot, but not to 
-other scenes.
+Creates and attaches a `MouseStateMachine` that produces `MouseStateEvents`. 
+The events will be passed to the given `scene` and `elements` if 
+`restrict distribution = true` (default) or down the scene and plot graph else.
 
 `MouseStateEvent`s are usually produced when the mouse hovers over the given 
 `elements` (which are plots) or, if those are empty, the given `scene`. 
@@ -104,6 +106,8 @@ produced and those with lower priority may be skipped.
 register as a doubleclick.
 - `consume_source_events = true`: Controls whether consuming a `MouseStateEvent`
 also consumes the `MouseMovedEvent` or `MouseButtonEvent` it originates from.
+- `restrict_distribution = true`: If true, restricts events to the given `scene`
+and `elements`.
 """
 function MouseStateMachine(
         scene::Scene, plots::AbstractPlot...; 
@@ -112,7 +116,9 @@ function MouseStateMachine(
     msm = MouseStateMachine(
         mouseposition(scene), mouseposition_px(scene), plots; kwargs...
     )
-    replace!(scene, :mousestatemachine, msm, priority)
+    name = Symbol("mousestatemachine<$(rand(UInt64))>")
+    register!(scene, name, msm, priority)
+    name, msm
 end
 
 function spawn!(
@@ -122,20 +128,21 @@ function spawn!(
     )
 
     event = MouseStateEvent(type, data, px, prev_data, prev_px)
-    
-    # similar to root process, but doesn't update the global state and doesn't
-    # dispatch to subscenes.
-    processed = false
-    for _priority in reverse(scene.interactions.active)
-        for plot in reverse(scene.plots)
-            processed = processed || process!(plot, event, _priority)
-            processed && @goto finish
-        end    
-        # Should this happen before plots?
-        processed = processed || process!(scene.interactions, event, scene, _priority)
-        processed && @goto finish
-    end
 
+    if state.restrict_distribution
+        processed = false
+        for _priority in reverse(scene.interactions.active)
+            for plot in reverse(state.plots)
+                processed = processed || process!(plot, event, _priority)
+                processed && @goto finish
+            end    
+            processed = processed || process!(scene.interactions, event, scene, _priority)
+            processed && @goto finish
+        end
+    else
+        processed = process!(scene, event)
+    end
+    
     @label finish
     return state.consume_source_events && processed
 end

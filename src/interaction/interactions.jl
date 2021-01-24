@@ -292,16 +292,16 @@ function process!(root::Scene, @nospecialize(event))
     # process by priority first, reverse render order second
     for _priority in reverse(root.interactions.active)
         for plot in reverse(root.plots)
-            process!(plot, event, _priority) && return nothing
+            process!(plot, event, _priority) && return true
         end
         for child in reverse(root.children)
-            process!(child, event, _priority) && return nothing
+            process!(child, event, _priority) && return true
         end        
         # Should this happen before plots?
-        process!(root.interactions, event, root, _priority) && return nothing
+        process!(root.interactions, event, root, _priority) && return true
     end
 
-    return nothing
+    return false
 end
 
 function process!(scene::Scene, @nospecialize(event), _priority)
