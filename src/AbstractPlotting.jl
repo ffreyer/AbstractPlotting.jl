@@ -274,6 +274,9 @@ end
 include("figureplotting.jl")
 include("basic_recipes/series.jl")
 
+include("markup.jl")
+export MarkupString, @markup_str
+
 if Base.VERSION >= v"1.4.2"
     include("precompile.jl")
     _precompile_()
