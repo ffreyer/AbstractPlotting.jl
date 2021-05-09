@@ -127,3 +127,14 @@ text!(cars, position = Point.(horsepower, 1:5), align = (:right, :center),
 
 f
 ```
+
+`text` also allows for some simple markup text. Currently sub- and supersript
+are implemented with tex-based syntax.
+
+```@example
+using CairoMakie
+CairoMakie.activate!() # hide
+AbstractPlotting.inline!(true) # hide
+
+text(markup"y_1 = e^{2x - 1} + y_0^2")
+```

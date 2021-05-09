@@ -257,7 +257,7 @@ end
 """
     text(string)
 
-Plots a text.
+Plots a string. Also supports very basic markup through markup strings.
 
 ## Attributes
 $(ATTRIBUTES)

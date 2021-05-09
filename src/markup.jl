@@ -5,6 +5,14 @@ struct MarkupString <: AbstractString
     textsizes::Vector{Float32}
 end
 
+"""
+    MarkupString(string)
+
+Creates a basic tex flavored markup string. Currently supports sub- and 
+superscript via `_` and `^` as well as grouping via `{}`.
+
+See also: [`@markup_str`](@ref)
+"""
 function MarkupString(str::String)
     input = str
     char_buffer = Char[]
@@ -18,6 +26,7 @@ function MarkupString(str::String)
         if escaping
             push!(char_buffer, c)
             push!(states, state)
+            escaping = false
         elseif c == '\\'
             escaping = true
         elseif c == '^' && state == 0
@@ -45,6 +54,14 @@ function MarkupString(str::String)
     )
 end
 
+"""
+    markup"..."
+
+Creates a basic tex flavored markup string. Currently supports sub- and 
+superscript via `_` and `^` as well as grouping via `{}`.
+
+See also: [`MarkupString`](@ref)
+"""
 macro markup_str(str)
     MarkupString(str)
 end
